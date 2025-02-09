@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 180 3% 6%;
+  --foreground: 120 100% 86%;
+  --card: 180 3% 8%;
+  --card-foreground: 120 100% 86%;
+  --popover: 180 3% 6%;
+  --popover-foreground: 120 100% 86%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 180 5% 12%;
+  --secondary-foreground: 120 100% 86%;
+  --muted: 180 5% 12%;
+  --muted-foreground: 120 60% 76%;
+  --accent: 120 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 120 100% 86%;
+  --border: 180 5% 12%;
+  --input: 180 5% 12%;
+  --ring: 120 100% 50%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 180 3% 6%;
+  --foreground: 120 100% 86%;
+  --card: 180 3% 8%;
+  --card-foreground: 120 100% 86%;
+  --popover: 180 3% 6%;
+  --popover-foreground: 120 100% 86%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 180 5% 12%;
+  --secondary-foreground: 120 100% 86%;
+  --muted: 180 5% 12%;
+  --muted-foreground: 120 60% 76%;
+  --accent: 120 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 120 100% 86%;
+  --border: 180 5% 12%;
+  --input: 180 5% 12%;
+  --ring: 120 100% 50%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Terminal-like selection color */
+::selection {
+  background: #00ff00;
+  color: #000000;
+}
+
+/* Terminal-like scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
+}
+
+/* Cursor animation */
+.terminal-cursor::after {
+  content: '_';
+  animation: cursor 1s infinite;
+  opacity: 0;
+}
+
+@keyframes cursor {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
