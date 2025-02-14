@@ -1,3 +1,5 @@
+"use client";  // Mark this file as a client-side component
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';

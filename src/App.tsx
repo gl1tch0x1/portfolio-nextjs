@@ -1,6 +1,5 @@
 import { useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Shield, Code, Database, Network, Lock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { GlitchText } from '@/components/GlitchText';
 import { Navbar } from '@/components/Navbar';
@@ -46,8 +45,8 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-[#0a0a0a] ${isDarkMode ? 'dark' : ''}`}>
-      <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+CiAgPHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQgPSJNMzAgMzBtLTIgMGEyIDIgMCAxIDEgNCAwYTIgMiAwIDEgMSAtNCAwIiBmaWxsPSJyZ2JhKDAsMjU1LDAsMC4xKSIvPgo8L3N2Zz4=')] opacity-50" />
+    <div className={`min-h-screen bg-white dark:bg-[#0a0a0a] ${isDarkMode ? 'dark' : ''}`}>
+      <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+CiAgPHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPgogIDxwYXRoIGQgPSJNMzAgMzBtLTIgMGEyIDIgMCAxIDEgNCAwYTIgMiAwIDEgMSAtNCAwIiBmaWxsPSJyZ2JhKDAsMjU1LDAsMC4xKSIvPgo8L3N2Zz4=')] opacity-50 dark:opacity-30" />
       <div className="relative">
         <Suspense fallback={<LoadingScreen />}>
           <Navbar 

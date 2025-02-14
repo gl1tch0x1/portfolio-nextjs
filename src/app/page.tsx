@@ -1,28 +1,63 @@
-import { createClient } from '@supabase/supabase-js';
+'use client'
 
-export default async function Page() {
-  const supabaseUrl = process.env.SUPABASE_URL; // This should get the URL from .env.local
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY; // Similarly for anon key
+import { Suspense, useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
+import { Navbar } from '@/components/Navbar'
+import { HeroSection } from '@/components/HeroSection'
+import { ProjectsGrid } from '@/components/ProjectsGrid'
+import { SkillsMatrix } from '@/components/SkillsMatrix'
+import { ContactSection } from '@/components/ContactSection'
+import { SecBlogs } from '@/components/SecBlogs'
+import { Experience } from '@/components/Experience'
+import { Certifications } from '@/components/Certifications'
+import { LoadingScreen } from '@/components/LoadingScreen'
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase URL and Anon Key are required");
+export default function Home() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  const [activeSection, setActiveSection] = useState('home')
+  const isDarkMode = theme === 'dark'
+  const handleSetDarkMode = (value: boolean) => setTheme(value ? 'dark' : 'light')
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <LoadingScreen />
   }
 
-  // Create Supabase client
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-  const { data: todos, error } = await supabase.from('todos').select('*');
-
-  if (error) {
-    console.error("Error loading todos:", error);
-    return <p>Error loading todos: {error.message}</p>;
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'about':
+        return <Experience />
+      case 'projects':
+        return <ProjectsGrid />
+      case 'skills':
+        return <SkillsMatrix />
+      case 'secblogs':
+        return <SecBlogs />
+      case 'certifications':
+        return <Certifications />
+      case 'contact':
+        return <ContactSection />
+      default:
+        return <HeroSection />
+    }
   }
 
   return (
-    <ul>
-      {todos?.map((todo) => (
-        <li key={todo.id}>{todo.text}</li>
-      ))}
-    </ul>
-  );
+    <main className="flex min-h-screen flex-col">
+      <Suspense fallback={<LoadingScreen />}>
+        <Navbar
+          isDarkMode={isDarkMode}
+          setIsDarkMode={handleSetDarkMode}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+        {renderSection()}
+      </Suspense>
+    </main>
+  )
 }

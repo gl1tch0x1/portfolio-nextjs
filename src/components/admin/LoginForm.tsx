@@ -1,4 +1,6 @@
-import { useState } from 'react';
+'use client'; // Add this directive to make the component a client component
+
+import { useState, createContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,16 +9,27 @@ import { Button } from '@/components/ui/button';
 import { Terminal } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface AppState {}
+
+export const AppStateContext = createContext<AppState>({});
+export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <AppStateContext.Provider value={{}}>
+      {children}
+    </AppStateContext.Provider>
+  );
+};
+
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClientComponentClient(); // Create the Supabase client instance
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault();  // Prevent the default form submission behavior
+    setLoading(true);    // Set loading to true to disable the button during authentication
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);  // Extract form data
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
@@ -26,14 +39,15 @@ export function LoginForm() {
         password,
       });
 
-      if (error) throw error;
+      if (error) throw error; // Handle any errors
 
+      // Redirect to the admin page and refresh the router
       router.push('/admin');
-      router.refresh();
+      router.refresh(); 
     } catch (error) {
-      toast.error('Invalid credentials');
+      toast.error('Invalid credentials'); // Show error toast message
     } finally {
-      setLoading(false);
+      setLoading(false);  // Set loading to false after authentication attempt
     }
   };
 
@@ -69,7 +83,7 @@ export function LoginForm() {
           <Button
             type="submit"
             className="w-full"
-            disabled={loading}
+            disabled={loading} // Disable button while loading
           >
             {loading ? 'Authenticating...' : 'Login'}
           </Button>

@@ -1,43 +1,43 @@
 import { createServerClient } from "@supabase/ssr";
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 
-// Middleware function that Next.js expects (converted to async)
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next(); // Initialize the response
-
-  // Create the Supabase client
-  const { supabase, supabaseResponse: modifiedResponse } = createClient(request, supabaseResponse);
-
-  // Example: Protect a route or add any middleware logic you need
-  // Check for user authentication using Supabase session
-  const { data } = await supabase.auth.getSession();  // Get the session data
-
-  if (!data.session) {
-    // If no session, redirect to login page
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  return modifiedResponse; // Return the modified response
+// Define types for better type safety
+interface SupabaseResponse {
+  supabase: SupabaseClient;
+  supabaseResponse: NextResponse;
 }
 
-export const config = {
-  // Apply the middleware to routes under /protected/
-  matcher: "/protected/:path*", // Correct wildcard pattern for nested routes
-};
-
 // Helper function to create the Supabase client
-export const createClient = (request: NextRequest, response?: NextResponse) => {
-  let supabaseResponse = response || NextResponse.next();
+const createClient = (request: NextRequest, response?: NextResponse): SupabaseResponse => {
+  const supabaseResponse = response || NextResponse.next();
+
+  // Validate environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
+        get: (name) => request.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          supabaseResponse.cookies.set({
+            name,
+            value,
+            ...options
+          });
+        },
+        remove: (name, options) => {
+          supabaseResponse.cookies.set({
+            name,
+            value: '',
+            ...options
           });
         },
       },
@@ -45,4 +45,46 @@ export const createClient = (request: NextRequest, response?: NextResponse) => {
   );
 
   return { supabase, supabaseResponse };
+};
+
+// Middleware function with proper error handling
+export async function middleware(request: NextRequest) {
+  try {
+    const supabaseResponse = NextResponse.next();
+    const { supabase, supabaseResponse: modifiedResponse } = createClient(request, supabaseResponse);
+
+    // Get the session data with timeout
+    const { data, error } = await Promise.race<{ data: { session: any } | null, error: any }>([
+      supabase.auth.getSession(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Auth timeout')), 5000)
+      )
+    ]);
+
+    if (error) {
+      console.error('Auth error:', error);
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    if (!data?.session) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    // Add user context to headers for downstream use
+    modifiedResponse.headers.set('x-user-id', data.session.user.id);
+    
+    return modifiedResponse;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return NextResponse.redirect(new URL("/error", request.url));
+  }
+}
+
+// Configure protected routes
+export const config = {
+  matcher: [
+    '/protected/:path*',
+    '/api/protected/:path*',
+    '/admin/:path*'
+  ]
 };

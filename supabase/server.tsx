@@ -1,26 +1,35 @@
+"use server";
 
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { redirect } from "next/navigation";
+import { AdminNav } from "@/components/admin/AdminNav";
 
-export const createClient = (cookieStore: ReturnType<typeof cookies>) => {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    },
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  //  Await the cookies function before using it
+  const cookieStore = await cookies(); 
+
+  //  Create Supabase client correctly
+  const supabase = createServerComponentClient({ cookies });
+
+  //  Get session correctly
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  //  Redirect if no session exists
+  if (!session) {
+    redirect("/admin/login");
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <AdminNav />
+      <main className="container mx-auto px-4 py-8">{children}</main>
+    </div>
   );
-};
+}
