@@ -24,9 +24,5 @@ export default function LoginPage() {
     checkSession()
   }, [router, supabase.auth])
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/10">
-      <LoginForm />
-    </div>
-  )
+  return <LoginForm />
 } 

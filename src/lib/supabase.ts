@@ -1,6 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import type { Database } from '@/types/supabase'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+export const createClient = () => {
+  const supabase = createClientComponentClient<Database>()
+  
+  // Add error interceptor
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      console.log('User signed out')
+    }
+  })
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  return supabase
+}

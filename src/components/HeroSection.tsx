@@ -1,71 +1,62 @@
-import { motion } from 'framer-motion';
 import { Terminal, Shield, Code, Wifi } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { GlitchText } from './GlitchText';
 
+const features = [
+  {
+    icon: Shield,
+    title: 'Security First',
+    description: 'Building with security as a foundation, not an afterthought'
+  },
+  {
+    icon: Code,
+    title: 'Clean Code',
+    description: 'Writing maintainable, efficient, and secure code'
+  },
+  {
+    icon: Terminal,
+    title: 'Automation',
+    description: 'Creating tools and scripts for security automation'
+  },
+  {
+    icon: Wifi,
+    title: 'Network Security',
+    description: 'Securing networks and infrastructure'
+  }
+];
+
 export function HeroSection() {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="min-h-[80vh] flex items-center justify-center"
-    >
-      <div className="text-center space-y-8">
-        <motion.div
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-center mb-6"
-        >
-          <Terminal className="w-16 h-16 text-primary animate-pulse" />
-        </motion.div>
-        
-        <div className="space-y-4">
-          <h1 className="text-5xl font-bold mb-4 space-y-2">
-            <GlitchText text="Hello, friend." className="mb-4" />
-            <div className="text-sm text-primary font-mono">
-              <span className="terminal-cursor">root@fsociety:~# </span>
-              <span className="typing-animation">whoami</span>
-            </div>
-          </h1>
-          
-          <p className="text-xl text-primary/80 max-w-2xl mx-auto font-mono">
-            {">"} Full Stack Developer & Cybersecurity Researcher
-            <br />
-            {">"} Breaking systems to build them stronger.
-          </p>
-        </div>
-        
-        <div className="flex justify-center space-x-4 mt-8">
-          <Button className="group bg-primary/20 hover:bg-primary/30 text-primary border border-primary">
-            <Code className="mr-2 h-4 w-4 group-hover:animate-spin" />
-            ./view-projects.sh
-          </Button>
-          <Button variant="outline" className="group border-primary text-primary hover:bg-primary/20">
-            <Shield className="mr-2 h-4 w-4 group-hover:animate-pulse" />
-            ./security-research.sh
-          </Button>
-        </div>
-        
-        <div className="mt-16 grid grid-cols-3 gap-8 max-w-3xl mx-auto">
-          {[
-            { icon: Code, label: 'Full Stack', value: '5+ years', cmd: 'experience.log' },
-            { icon: Shield, label: 'Security', value: '50+ CVEs', cmd: 'vulnerabilities.db' },
-            { icon: Wifi, label: 'Systems', value: '∞ hacked', cmd: 'pwned.txt' }
-          ].map(({ icon: Icon, label, value, cmd }) => (
-            <motion.div
-              key={label}
-              whileHover={{ scale: 1.05 }}
-              className="p-6 rounded-lg bg-black/50 border border-primary/20 hover:border-primary/50 transition-colors"
-            >
-              <Icon className="w-8 h-8 mb-4 mx-auto text-primary" />
-              <h3 className="font-mono text-primary mb-2">{label}</h3>
-              <p className="text-primary/80 font-mono text-sm">cat {cmd}</p>
-              <p className="text-primary mt-2">{value}</p>
-            </motion.div>
-          ))}
+    <section className="py-20">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">
+          <span className="block">Security Engineer &</span>
+          <span className="block text-primary">
+            <GlitchText text="Ethical Hacker" />
+          </span>
+        </h1>
+        <p className="mx-auto max-w-2xl text-muted-foreground">
+          Specializing in application security, penetration testing, and secure development.
+          Building tools and systems with security at their core.
+        </p>
+        <div className="flex justify-center gap-4 pt-4">
+          <Button size="lg">View Projects</Button>
+          <Button size="lg" variant="outline">Contact Me</Button>
         </div>
       </div>
-    </motion.section>
+
+      <div className="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {features.map(feature => (
+          <div 
+            key={feature.title}
+            className="group p-6 bg-card text-card-foreground rounded-lg border transition-all duration-300 hover:border-primary"
+          >
+            <feature.icon className="w-12 h-12 text-primary mb-4 transition-transform group-hover:scale-110" />
+            <h3 className="font-semibold mb-2">{feature.title}</h3>
+            <p className="text-muted-foreground">{feature.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

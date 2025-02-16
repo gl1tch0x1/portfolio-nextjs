@@ -1,39 +1,38 @@
-import { motion } from 'framer-motion';
 import { Terminal, Briefcase, Award } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const experiences = [
   {
-    title: 'Lead Security Engineer',
+    title: 'Senior Security Engineer',
     company: 'CyberGuard Solutions',
-    period: '2022 - Present',
-    description: 'Leading security assessments and implementing zero-trust architecture for Fortune 500 clients.',
+    period: '2021 - Present',
+    description: 'Leading security architecture and incident response',
     achievements: [
-      'Discovered and responsibly disclosed 15+ critical vulnerabilities',
-      'Implemented AI-powered threat detection system',
-      'Led a team of 5 security researchers'
+      'Implemented zero-trust architecture',
+      'Reduced incident response time by 60%',
+      'Led team of 5 security analysts'
     ]
   },
   {
-    title: 'Senior Full Stack Developer',
-    company: 'TechCorp Industries',
-    period: '2020 - 2022',
-    description: 'Architected and developed secure enterprise applications using cutting-edge technologies.',
+    title: 'Security Consultant',
+    company: 'SecureNet',
+    period: '2019 - 2021',
+    description: 'Security assessments and penetration testing',
     achievements: [
-      'Reduced system vulnerabilities by 75%',
-      'Optimized application performance by 60%',
-      'Mentored junior developers in secure coding practices'
+      'Conducted 50+ security assessments',
+      'Developed automated testing tools',
+      'Created security training program'
     ]
   },
   {
-    title: 'Security Researcher',
-    company: 'DefCon Labs',
-    period: '2018 - 2020',
-    description: 'Conducted advanced security research and vulnerability assessments.',
+    title: 'Security Analyst',
+    company: 'DefendCorp',
+    period: '2017 - 2019',
+    description: 'Security monitoring and incident response',
     achievements: [
-      'Published 3 major security research papers',
-      'Developed custom security testing tools',
-      'Regular speaker at security conferences'
+      'Managed SIEM implementation',
+      'Handled 100+ security incidents',
+      'Improved detection capabilities'
     ]
   }
 ];
@@ -42,50 +41,36 @@ export function Experience() {
   return (
     <section className="py-20">
       <div className="text-center mb-16">
-        <Terminal className="w-12 h-12 text-primary mx-auto mb-4" />
-        <h2 className="text-3xl font-bold mb-4">Experience Timeline</h2>
-        <p className="text-muted-foreground font-mono">cat ~/career/timeline.log</p>
+        <h2 className="text-3xl font-bold mb-4">Professional Experience</h2>
+        <p className="text-muted-foreground">My journey in cybersecurity</p>
       </div>
 
-      <div className="max-w-4xl mx-auto space-y-8">
-        {experiences.map((exp, index) => (
-          <motion.div
-            key={exp.title}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="border-primary/20 hover:border-primary/50 transition-colors">
+      <div className="space-y-8 max-w-4xl mx-auto">
+        {experiences.map(exp => (
+          <div key={exp.title} className="transition-all duration-300 ease-in-out">
+            <Card>
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <Briefcase className="w-8 h-8 text-primary" />
                   <div>
-                    <CardTitle className="text-xl mb-1">{exp.title}</CardTitle>
-                    <CardDescription className="font-mono">
-                      {exp.company} | {exp.period}
-                    </CardDescription>
+                    <CardTitle>{exp.title}</CardTitle>
+                    <CardDescription>{exp.company} | {exp.period}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="mb-4 text-primary/80">{exp.description}</p>
+                <p className="mb-4">{exp.description}</p>
                 <ul className="space-y-2">
-                  {exp.achievements.map((achievement, i) => (
-                    <motion.li
-                      key={i}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: (index * 0.1) + ((i + 1) * 0.1) }}
-                      className="flex items-start gap-2 font-mono text-sm text-primary/70"
-                    >
-                      <Award className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
+                  {exp.achievements.map(achievement => (
+                    <li key={achievement} className="flex items-center gap-2">
+                      <Award className="w-4 h-4 text-primary" />
                       <span>{achievement}</span>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

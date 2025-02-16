@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Terminal, Calendar, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,11 +37,10 @@ export function SecBlogs() {
 
       <div className="grid gap-8 max-w-4xl mx-auto">
         {blogs.map((blog, index) => (
-          <motion.div
+          <div
             key={blog.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            className="fade-in"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <Card className="overflow-hidden border-primary/20 hover:border-primary/50 transition-colors">
               <div className="grid md:grid-cols-[2fr,3fr] gap-6">
@@ -86,7 +84,7 @@ export function SecBlogs() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

@@ -1,90 +1,66 @@
-import { createServerClient } from "@supabase/ssr";
-import { type SupabaseClient } from "@supabase/supabase-js";
-import { type NextRequest, NextResponse } from "next/server";
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-// Define types for better type safety
-interface SupabaseResponse {
-  supabase: SupabaseClient;
-  supabaseResponse: NextResponse;
-}
-
-// Helper function to create the Supabase client
-const createClient = (request: NextRequest, response?: NextResponse): SupabaseResponse => {
-  const supabaseResponse = response || NextResponse.next();
-
-  // Validate environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        get: (name) => request.cookies.get(name)?.value,
-        set: (name, value, options) => {
-          supabaseResponse.cookies.set({
-            name,
-            value,
-            ...options
-          });
-        },
-        remove: (name, options) => {
-          supabaseResponse.cookies.set({
-            name,
-            value: '',
-            ...options
-          });
-        },
-      },
-    }
-  );
-
-  return { supabase, supabaseResponse };
-};
-
-// Middleware function with proper error handling
-export async function middleware(request: NextRequest) {
+export async function middleware(req: NextRequest) {
   try {
-    const supabaseResponse = NextResponse.next();
-    const { supabase, supabaseResponse: modifiedResponse } = createClient(request, supabaseResponse);
+    const res = NextResponse.next()
+    const supabase = createMiddlewareClient({ req, res })
+    const { data: { session } } = await supabase.auth.getSession()
 
-    // Get the session data with timeout
-    const { data, error } = await Promise.race<{ data: { session: any } | null, error: any }>([
-      supabase.auth.getSession(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth timeout')), 5000)
-      )
-    ]);
+    // Add the current path to headers for use in layout
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('x-pathname', req.nextUrl.pathname)
 
-    if (error) {
-      console.error('Auth error:', error);
-      return NextResponse.redirect(new URL("/login", request.url));
+    // Check if it's an admin route
+    if (req.nextUrl.pathname.startsWith('/admin')) {
+      // Allow access to login page
+      if (req.nextUrl.pathname === '/admin/login') {
+        if (session) {
+          // Redirect to admin dashboard if already logged in
+          return NextResponse.redirect(new URL('/admin', req.url))
+        }
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        })
+      }
+
+      // Protect all other admin routes
+      if (!session) {
+        const redirectUrl = new URL('/admin/login', req.url)
+        return NextResponse.redirect(redirectUrl)
+      }
+
+      // Check for admin role
+      const { data: userRole } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!userRole || userRole.role !== 'admin') {
+        const redirectUrl = new URL('/', req.url)
+        return NextResponse.redirect(redirectUrl)
+      }
     }
 
-    if (!data?.session) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    // Add user context to headers for downstream use
-    modifiedResponse.headers.set('x-user-id', data.session.user.id);
-    
-    return modifiedResponse;
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
   } catch (error) {
-    console.error('Middleware error:', error);
-    return NextResponse.redirect(new URL("/error", request.url));
+    // If there's an error, redirect to the login page
+    const redirectUrl = new URL('/admin/login', req.url)
+    return NextResponse.redirect(redirectUrl)
   }
 }
 
-// Configure protected routes
 export const config = {
   matcher: [
-    '/protected/:path*',
-    '/api/protected/:path*',
-    '/admin/:path*'
-  ]
-};
+    '/admin/:path*',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
+}

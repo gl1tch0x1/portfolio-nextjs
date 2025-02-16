@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Code, Database, Lock, Network, Server, Terminal } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -43,11 +42,10 @@ export function SkillsMatrix() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {skills.map((category, categoryIndex) => (
-          <motion.div
+          <div
             key={category.category}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: categoryIndex * 0.1 }}
+            className="fade-in"
+            style={{ animationDelay: `${categoryIndex * 0.1}s` }}
           >
             <Card className="h-full">
               <CardHeader>
@@ -62,23 +60,22 @@ export function SkillsMatrix() {
               <CardContent>
                 <div className="space-y-6">
                   {category.items.map((skill, skillIndex) => (
-                    <motion.div
+                    <div
                       key={skill.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: (categoryIndex * 0.1) + (skillIndex * 0.1) }}
+                      className="slide-up"
+                      style={{ animationDelay: `${(categoryIndex * 0.1) + (skillIndex * 0.1)}s` }}
                     >
                       <div className="flex justify-between mb-2">
                         <span className="text-sm font-medium">{skill.name}</span>
                         <span className="text-sm text-muted-foreground">{skill.level}%</span>
                       </div>
                       <Progress value={skill.level} className="h-2" />
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

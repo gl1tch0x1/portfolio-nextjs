@@ -1,36 +1,41 @@
-import { motion } from 'framer-motion';
+'use client'
+
 import { Terminal } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { useState, useEffect } from 'react';
 
 export function LoadingScreen() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center space-y-4"
-      >
-        <Terminal className="w-12 h-12 text-primary animate-pulse" />
-        <div className="font-mono text-primary space-y-2">
-          <p className="text-sm">
-            <span className="terminal-cursor">root@fsociety:~# </span>
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ repeat: Infinity, duration: 1 }}
-            >
-              Loading system...
-            </motion.span>
+      <div className="text-center space-y-6 w-64">
+        <Terminal className="w-12 h-12 text-primary mx-auto animate-spin" />
+        <div className="font-mono space-y-4">
+          <p className="text-sm text-primary">
+            <span className="opacity-50">root@fsociety:~# </span>
+            <span className="animate-pulse">Loading system...</span>
           </p>
-          <div className="w-48 h-1 bg-primary/20 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary"
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          </div>
+          <Progress value={progress} className="h-1" />
+          <p className="text-xs text-muted-foreground animate-fade-in">
+            Initializing secure environment ({progress}%)
+          </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

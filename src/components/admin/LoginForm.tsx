@@ -1,37 +1,20 @@
-'use client'; // Add this directive to make the component a client component
+'use client';
 
-import { useState, createContext } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Terminal } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-interface AppState {}
-
-export const AppStateContext = createContext<AppState>({});
-export const AppStateProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <AppStateContext.Provider value={{}}>
-      {children}
-    </AppStateContext.Provider>
-  );
-};
-
 export function LoginForm() {
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClientComponentClient(); // Create the Supabase client instance
+  const supabase = createClientComponentClient();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();  // Prevent the default form submission behavior
-    setLoading(true);    // Set loading to true to disable the button during authentication
-
-    const formData = new FormData(e.currentTarget);  // Extract form data
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -39,56 +22,79 @@ export function LoginForm() {
         password,
       });
 
-      if (error) throw error; // Handle any errors
+      if (error) {
+        toast.error('Invalid login credentials');
+        return;
+      }
 
-      // Redirect to the admin page and refresh the router
+      toast.success('Login successful');
       router.push('/admin');
-      router.refresh(); 
+      router.refresh();
     } catch (error) {
-      toast.error('Invalid credentials'); // Show error toast message
+      toast.error('An error occurred during login');
     } finally {
-      setLoading(false);  // Set loading to false after authentication attempt
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader className="space-y-1">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-6 h-6" />
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
+    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      <div className="rounded-md shadow-sm space-y-4">
+        <div>
+          <label htmlFor="email" className="sr-only">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+            placeholder="Email address"
+          />
         </div>
-        <CardDescription>
-          Enter your credentials to access the admin panel
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              type="text"
-              name="email"
-              placeholder="Username"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading} // Disable button while loading
-          >
-            {loading ? 'Authenticating...' : 'Login'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <div>
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+            placeholder="Password"
+          />
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <span className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Signing in...
+            </span>
+          ) : (
+            'Sign in'
+          )}
+        </button>
+      </div>
+    </form>
   );
 }
+
+export default LoginForm;

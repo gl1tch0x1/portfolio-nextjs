@@ -165,6 +165,27 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = 'FormMessage';
 
+interface FormProps {
+  onSubmit: (data: any) => void
+  children: React.ReactNode
+  className?: string
+}
+
+export function Form({ onSubmit, children, className = '' }: FormProps) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget as HTMLFormElement)
+    const data = Object.fromEntries(formData)
+    onSubmit(data)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+      {children}
+    </form>
+  )
+}
+
 export {
   useFormField,
   Form,

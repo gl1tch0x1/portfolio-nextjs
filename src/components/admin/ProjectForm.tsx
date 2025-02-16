@@ -1,114 +1,137 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { createClient } from '@/lib/supabase';
+import type { Database } from '@/types/supabase';
+
+type Project = Database['public']['Tables']['projects']['Row'];
 
 interface ProjectFormProps {
-  project?: any;
+  project?: Project | null;
   onClose: () => void;
-  onSubmit: () => void;
+  onSuccess?: () => void;
 }
 
-export function ProjectForm({ project, onClose, onSubmit }: ProjectFormProps) {
-  const [formData, setFormData] = useState({
-    title: project?.title || '',
-    description: project?.description || '',
-    image_url: project?.image_url || '',
-    github_url: project?.github_url || '',
-    live_url: project?.live_url || '',
-  });
+export function ProjectForm({ project, onClose, onSuccess }: ProjectFormProps) {
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
 
-  const supabase = createClientComponentClient();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    const { error } = project
-      ? await supabase
-          .from('projects')
-          .update(formData)
-          .eq('id', project.id)
-      : await supabase
-          .from('projects')
-          .insert([formData]);
+    setLoading(true);
 
-    if (error) {
+    try {
+      const formData = new FormData(e.currentTarget);
+      const data = {
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        image_url: formData.get('image_url') as string,
+        demo_url: formData.get('demo_url') as string,
+        github_url: formData.get('github_url') as string,
+        tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()),
+      };
+
+      if (project?.id) {
+        const { error } = await supabase
+          .from('projects')
+          .update(data)
+          .eq('id', project.id);
+        if (error) throw error;
+        toast.success('Project updated successfully');
+      } else {
+        const { error } = await supabase.from('projects').insert(data);
+        if (error) throw error;
+        toast.success('Project created successfully');
+      }
+
+      onSuccess?.();
+      onClose();
+    } catch (error) {
       toast.error('Failed to save project');
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    toast.success(`Project ${project ? 'updated' : 'created'} successfully`);
-    onSubmit();
-    onClose();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-      <div>
-        <label className="block text-sm font-medium mb-1">Title</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          className="w-full p-2 border rounded dark:bg-gray-700"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full p-2 border rounded dark:bg-gray-700"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Image URL</label>
-        <input
-          type="url"
-          value={formData.image_url}
-          onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-          className="w-full p-2 border rounded dark:bg-gray-700"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">GitHub URL</label>
-        <input
-          type="url"
-          value={formData.github_url}
-          onChange={(e) => setFormData({ ...formData, github_url: e.target.value })}
-          className="w-full p-2 border rounded dark:bg-gray-700"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium mb-1">Live URL</label>
-        <input
-          type="url"
-          value={formData.live_url}
-          onChange={(e) => setFormData({ ...formData, live_url: e.target.value })}
-          className="w-full p-2 border rounded dark:bg-gray-700"
-          required
-        />
-      </div>
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >
-          {project ? 'Update' : 'Create'} Project
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{project ? 'Edit Project' : 'Add Project'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Title</label>
+            <Input
+              name="title"
+              defaultValue={project?.title}
+              placeholder="Project Title"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description</label>
+            <Textarea
+              name="description"
+              defaultValue={project?.description}
+              placeholder="Project Description"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Image URL</label>
+            <Input
+              name="image_url"
+              defaultValue={project?.image_url}
+              placeholder="https://example.com/image.jpg"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Demo URL</label>
+            <Input
+              name="demo_url"
+              defaultValue={project?.demo_url}
+              placeholder="https://demo.example.com"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">GitHub URL</label>
+            <Input
+              name="github_url"
+              defaultValue={project?.github_url}
+              placeholder="https://github.com/username/repo"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Tags</label>
+            <Input
+              name="tags"
+              defaultValue={project?.tags?.join(', ')}
+              placeholder="react, typescript, tailwind"
+            />
+          </div>
+
+          <div className="flex justify-end gap-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Save Project'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 } 
